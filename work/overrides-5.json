@@ -1,0 +1,11 @@
+{
+  "settings.pluginInventory/fromPreset": "提供元",
+  "trajectory/timing.outputTokensUnavailable": "出力トークンは利用できません",
+  "conversation/detail.status.exited": "終了済み",
+  "agentTeams/task.summary.ended": "最終: {completed}件配信済み · {cancelled}件キャンセル · {failed}件失敗",
+  "conversation/row.inspect": "検査",
+  "conversation/detail.moreInInspect": "他 {count} 件の項目は「検査」で確認できます",
+  "settings.pstack/groupPanels": "パネルのロール",
+  "agentTeams/archive.discardedLabel": "プラン破棄 · アーカイブ済み履歴",
+  "model/provider.account": "DeepSeek Account"
+}

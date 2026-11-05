@@ -1,0 +1,23 @@
+{
+  "agentTeams/captain.summary.withTakeover": "メンバーに {tasks} 件を割り当て · キャプテンが {captainTasks} 件を担当",
+
+  "trajectory/tab.raw": "生データ",
+  "trajectory/tab.rawOutput": "生データ出力",
+  "trajectory/kind.assistant": "アシスタント",
+  "trajectory/record.parameters": "パラメータ",
+  "trajectory/record.parametersJson": "パラメータ JSON",
+  "trajectory/record.payloadJson": "ペイロード JSON",
+
+  "settings.agentPreset/presetPtcName": "PTC モード",
+  "settings.agentPreset/setDefault": "新しいタスクのデフォルトに設定",
+  "settings.agentLoop/invalidNumber": "数値を入力するか、空欄のままにするとデフォルトが使用されます。",
+  "settings.models/contextWindowPlaceholder": "プロバイダーのデフォルトを使用します",
+  "settings.models/modelsInherited": "アダプターのデフォルトを使用中",
+  "settings.permission/description": "新しいセッションのデフォルトの権限モードを選択",
+  "settings.pstack/effortOmit": "省略（アダプターのデフォルト）",
+
+  "conversation/detail.field.props": "プロパティ",
+  "workspace/groupBy.workspace": "ワークスペース",
+  "workspace/defaultWorkspace.failed": "デフォルトのワークスペースを作成できません。「ワークスペースを選択」からフォルダーを選んでください。",
+  "voice-input/setup.estimateNote": "これらは推定値です。ネットワークが遅い場合はさらに時間がかかることがあります。ダウンロードは再利用され、アイドル状態のモデルはデフォルトでメモリを解放します。"
+}

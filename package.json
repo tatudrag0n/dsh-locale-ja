@@ -1,0 +1,67 @@
+{
+  "name": "@local/dsh-locale-ja",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Japanese language pack for the DSH Web UI: registers 日本語 in the Language setting and its dictionaries for every installed client namespace.",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "locale",
+    "language-pack",
+    "japanese",
+    "ja",
+    "i18n"
+  ],
+  "icon": "./icon.svg",
+  "meta": {
+    "title": {
+      "en": "Japanese language pack",
+      "ja": "日本語ランゲージパック"
+    },
+    "description": {
+      "en": "Adds 日本語 to Settings → General → Language and translates the Web UI copy through the locale service.",
+      "ja": "設定 → 一般 → 言語 に「日本語」を追加し、Web UI の文言をロケールサービス経由で日本語にします。"
+    }
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./dictionaries/*.json": "./dictionaries/*.json",
+    "./package.json": "./package.json",
+    "./icon.svg": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "client.src.js",
+    "cordis.patch.yml",
+    "dictionaries",
+    "tools",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test",
+    "extract": "node tools/extract.mjs",
+    "work": "node tools/make-work.mjs",
+    "apply": "node tools/apply-translations.mjs",
+    "build": "node tools/build.mjs",
+    "check": "node tools/check.mjs"
+  }
+}

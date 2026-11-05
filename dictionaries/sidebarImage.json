@@ -1,0 +1,26 @@
+{
+  "namespace": "sidebarImage",
+  "package": "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
+  "keys": {
+    "failed": "This image could not be displayed.",
+    "loading": "Rendering document...",
+    "preview": "Image preview: {name}",
+    "title": "Image",
+    "unsupported": "Image preview requires the complete file contents."
+  },
+  "zh": {
+    "failed": "无法显示这张图片",
+    "loading": "文档渲染中...",
+    "preview": "图片预览：{name}",
+    "title": "图片",
+    "unsupported": "图片预览需要完整文件内容"
+  },
+  "ja": {
+    "failed": "この画像を表示できませんでした。",
+    "loading": "ドキュメントを描画しています…",
+    "preview": "画像プレビュー: {name}",
+    "title": "画像",
+    "unsupported": "画像プレビューにはファイル全体の内容が必要です。"
+  },
+  "unresolved": []
+}

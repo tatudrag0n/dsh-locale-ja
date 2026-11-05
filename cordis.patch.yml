@@ -1,0 +1,9 @@
+# Japanese language pack: one row whose Host half owns no behaviour.
+#
+# Every effect lives in the browser: the Client module registers the `ja`
+# language and its dictionaries through the locale service. The row exists so
+# the client-modules node half scans this package's `dsh.client` declaration and
+# serves its bundle at /plugins/@local/dsh-locale-ja/client.js.
+- insert:
+    - id: locale-ja
+      name: '@local/dsh-locale-ja'

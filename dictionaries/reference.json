@@ -1,0 +1,44 @@
+{
+  "namespace": "reference",
+  "package": "@deepseek-ai/dsh-client-ui-reference",
+  "keys": {
+    "candidate.noCwd": "(no cwd)",
+    "crumb.root": "Workspace",
+    "section.files": "Files & folders",
+    "section.sessions": "Sessions",
+    "section.subagents": "Subagents",
+    "time.days": "{n}d",
+    "time.hours": "{n}h",
+    "time.minutes": "{n}min",
+    "time.months": "{n}mo",
+    "time.now": "now",
+    "time.years": "{n}y"
+  },
+  "zh": {
+    "candidate.noCwd": "（无工作目录）",
+    "crumb.root": "工作区",
+    "section.files": "文件与文件夹",
+    "section.sessions": "对话",
+    "section.subagents": "子智能体",
+    "time.days": "{n}天",
+    "time.hours": "{n}小时",
+    "time.minutes": "{n}分钟",
+    "time.months": "{n}个月",
+    "time.now": "刚刚",
+    "time.years": "{n}年"
+  },
+  "ja": {
+    "candidate.noCwd": "（作業ディレクトリなし）",
+    "crumb.root": "ワークスペース",
+    "section.files": "ファイルとフォルダー",
+    "section.sessions": "セッション",
+    "section.subagents": "サブエージェント",
+    "time.days": "{n}日",
+    "time.hours": "{n}時間",
+    "time.minutes": "{n}分",
+    "time.months": "{n}か月",
+    "time.now": "たった今",
+    "time.years": "{n}年"
+  },
+  "unresolved": []
+}

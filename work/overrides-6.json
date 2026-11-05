@@ -1,0 +1,5 @@
+{
+  "settings/connection.error": "未接続",
+  "voice-input/discard": "認識されたテキストを破棄",
+  "settings.pluginInventory/failed": "起動失敗"
+}

@@ -1,0 +1,14 @@
+{
+  "namespace": "settings.locale",
+  "package": "@deepseek-ai/dsh-client-locale",
+  "keys": {
+    "language.title": "Language"
+  },
+  "zh": {
+    "language.title": "语言"
+  },
+  "ja": {
+    "language.title": "言語"
+  },
+  "unresolved": []
+}

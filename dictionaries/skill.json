@@ -1,0 +1,35 @@
+{
+  "namespace": "skill",
+  "package": "@deepseek-ai/dsh-client-ui-skill",
+  "keys": {
+    "menu.userOnly": "user-only",
+    "row.failed": "Skill load failed",
+    "row.inspect": "Inspect",
+    "row.instructions": "Instructions",
+    "row.preparing": "Preparing to load a skill",
+    "row.running": "Loading skill",
+    "row.stopped": "Skill load stopped",
+    "row.title": "Skill"
+  },
+  "zh": {
+    "menu.userOnly": "仅用户",
+    "row.failed": "skill 加载失败",
+    "row.inspect": "查看",
+    "row.instructions": "说明",
+    "row.preparing": "准备加载技能",
+    "row.running": "正在加载 skill",
+    "row.stopped": "skill 加载已中止",
+    "row.title": "加载技能"
+  },
+  "ja": {
+    "menu.userOnly": "ユーザーのみ",
+    "row.failed": "スキルの読み込みに失敗しました",
+    "row.inspect": "検査",
+    "row.instructions": "指示",
+    "row.preparing": "スキルの読み込みを準備しています",
+    "row.running": "スキルを読み込み中",
+    "row.stopped": "スキルの読み込みを停止しました",
+    "row.title": "スキル"
+  },
+  "unresolved": []
+}

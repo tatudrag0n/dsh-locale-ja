@@ -1,0 +1,53 @@
+{
+  "namespace": "settings.shell",
+  "package": "@deepseek-ai/dsh-client-ui-settings-shell",
+  "keys": {
+    "description": "Limit how long each command may run and how much it may output.",
+    "invalidNumber": "Enter a number, or leave blank to use the default.",
+    "maxOutputBytes": "Output cap per stream (bytes)",
+    "maxOutputBytesHint": "Output beyond this spills to a temporary file rather than being lost.",
+    "overridden": "Overridden",
+    "readOnly": "This deployment stores settings read-only.",
+    "reset": "Reset to default",
+    "save": "Save",
+    "saveFailed": "The deployment did not accept these values; they were left for you to correct.",
+    "saving": "Saving…",
+    "timeoutMs": "Command timeout (ms)",
+    "timeoutMsHint": "How long one command may run before it is terminated.",
+    "title": "Shell",
+    "unavailable": "This plugin is not loaded, so it cannot be configured right now."
+  },
+  "zh": {
+    "description": "限制每条命令最多能跑多久、最多输出多少内容。",
+    "invalidNumber": "请填数字；留空表示使用默认值。",
+    "maxOutputBytes": "单流输出上限（字节）",
+    "maxOutputBytesHint": "超出部分会转存到临时文件，而不是被丢弃。",
+    "overridden": "已覆盖",
+    "readOnly": "本部署的设置为只读。",
+    "reset": "恢复默认",
+    "save": "保存",
+    "saveFailed": "本部署没有接受这些值，已保留供你修改。",
+    "saving": "保存中…",
+    "timeoutMs": "命令超时（毫秒）",
+    "timeoutMsHint": "单条命令允许运行多久，超时即终止。",
+    "title": "终端",
+    "unavailable": "该插件当前未加载，暂时无法配置。"
+  },
+  "ja": {
+    "description": "各コマンドの実行時間と出力量を制限します。",
+    "invalidNumber": "数値を入力するか、空欄のままにするとデフォルトが使用されます。",
+    "maxOutputBytes": "ストリームごとの出力上限（バイト）",
+    "maxOutputBytesHint": "これを超える出力は失われず、一時ファイルに書き出されます。",
+    "overridden": "オーバーライド済み",
+    "readOnly": "このデプロイでは設定は読み取り専用で保存されます。",
+    "reset": "デフォルトに戻す",
+    "save": "保存",
+    "saveFailed": "このデプロイはこれらの値を受け付けませんでした。値はそのまま残されているので修正してください。",
+    "saving": "保存しています…",
+    "timeoutMs": "コマンドのタイムアウト（ms）",
+    "timeoutMsHint": "1つのコマンドが強制終了されるまでの最大実行時間です。",
+    "title": "シェル",
+    "unavailable": "このプラグインは読み込まれていないため、現在設定できません。"
+  },
+  "unresolved": []
+}

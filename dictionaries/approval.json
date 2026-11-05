@@ -1,0 +1,26 @@
+{
+  "namespace": "approval",
+  "package": "@deepseek-ai/dsh-client-ui-approval",
+  "keys": {
+    "allowOnce": "Allow once",
+    "detail.aria": "Approval details",
+    "escalation": "Tool {toolName} requests privileged execution",
+    "reject": "Reject",
+    "waiting": "Waiting for approval"
+  },
+  "zh": {
+    "allowOnce": "允许一次",
+    "detail.aria": "审批详情",
+    "escalation": "工具 {toolName} 请求越权执行",
+    "reject": "拒绝",
+    "waiting": "等待审批"
+  },
+  "ja": {
+    "allowOnce": "1 回だけ許可",
+    "detail.aria": "承認の詳細",
+    "escalation": "ツール {toolName} が特権実行を要求しています",
+    "reject": "却下",
+    "waiting": "承認待ち"
+  },
+  "unresolved": []
+}

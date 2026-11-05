@@ -1,0 +1,47 @@
+{
+  "namespace": "settings.agentLoop",
+  "package": "@deepseek-ai/dsh-client-ui-settings-agent-loop",
+  "keys": {
+    "description": "Control how the Agent dispatches tool calls.",
+    "invalidNumber": "Enter a number, or leave blank to use the default.",
+    "maxParallel": "Parallel tool calls",
+    "maxParallelHint": "Upper bound on parallel-safe calls running at once within one step.",
+    "overridden": "Overridden",
+    "readOnly": "This deployment stores settings read-only.",
+    "reset": "Reset to default",
+    "save": "Save",
+    "saveFailed": "The deployment did not accept these values; they were left for you to correct.",
+    "saving": "Saving…",
+    "title": "Agent loop",
+    "unavailable": "This plugin is not loaded, so it cannot be configured right now."
+  },
+  "zh": {
+    "description": "控制 Agent 派发工具调用的方式。",
+    "invalidNumber": "请填数字；留空表示使用默认值。",
+    "maxParallel": "并行工具调用数",
+    "maxParallelHint": "同一步内最多同时运行多少个可并行的调用。",
+    "overridden": "已覆盖",
+    "readOnly": "本部署的设置为只读。",
+    "reset": "恢复默认",
+    "save": "保存",
+    "saveFailed": "本部署没有接受这些值，已保留供你修改。",
+    "saving": "保存中…",
+    "title": "Agent 循环",
+    "unavailable": "该插件当前未加载，暂时无法配置。"
+  },
+  "ja": {
+    "description": "エージェントによるツール呼び出しのディスパッチ方法を制御します。",
+    "invalidNumber": "数値を入力するか、空欄のままにするとデフォルトが使用されます。",
+    "maxParallel": "並列ツール呼び出し",
+    "maxParallelHint": "1 つのステップ内で同時に実行される並列安全な呼び出しの上限です。",
+    "overridden": "オーバーライド済み",
+    "readOnly": "このデプロイでは設定は読み取り専用で保存されます。",
+    "reset": "デフォルトに戻す",
+    "save": "保存",
+    "saveFailed": "このデプロイはこれらの値を受け付けませんでした。値はそのまま残されているので修正してください。",
+    "saving": "保存しています…",
+    "title": "エージェントループ",
+    "unavailable": "このプラグインは読み込まれていないため、現在設定できません。"
+  },
+  "unresolved": []
+}

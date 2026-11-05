@@ -1,0 +1,8 @@
+{
+  "settings/desktop.update.checking": "更新を確認中…",
+  "settings/desktop.update.downloadDetail": "更新をダウンロード中: {percent}%\n対象バージョン: {version}",
+  "conversation/queue.edit": "キュー内のメッセージを編集",
+  "shortcuts/stale": "ショートカット設定または使用可能なコマンドが変更されました。保存する前に最新のキー割り当てを確認してください。",
+  "shortcuts/using-accepted": "最後に正常に読み込まれたキー割り当てが有効なままです。",
+  "sidebarBrowser/start": "閲覧を開始するにはHTTP(S)アドレスを入力してください"
+}

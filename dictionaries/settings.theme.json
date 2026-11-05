@@ -1,0 +1,38 @@
+{
+  "namespace": "settings.theme",
+  "package": "@deepseek-ai/dsh-client-ui-theme",
+  "keys": {
+    "appearance.dark": "Dark",
+    "appearance.light": "Light",
+    "appearance.system": "System",
+    "appearance.title": "Appearance",
+    "fontSize.decrease": "Decrease font size",
+    "fontSize.description": "Only affects conversation content",
+    "fontSize.increase": "Increase font size",
+    "fontSize.title": "Font size",
+    "fontSize.unit": "px"
+  },
+  "zh": {
+    "appearance.dark": "深色",
+    "appearance.light": "浅色",
+    "appearance.system": "跟随系统",
+    "appearance.title": "外观",
+    "fontSize.decrease": "减小字号",
+    "fontSize.description": "仅影响会话内容的字号",
+    "fontSize.increase": "增大字号",
+    "fontSize.title": "字号大小",
+    "fontSize.unit": "px"
+  },
+  "ja": {
+    "appearance.dark": "ダーク",
+    "appearance.light": "ライト",
+    "appearance.system": "システム",
+    "appearance.title": "外観",
+    "fontSize.decrease": "フォントサイズを縮小",
+    "fontSize.description": "会話の内容にのみ影響します",
+    "fontSize.increase": "フォントサイズを拡大",
+    "fontSize.title": "フォントサイズ",
+    "fontSize.unit": "px"
+  },
+  "unresolved": []
+}

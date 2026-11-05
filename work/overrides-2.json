@@ -1,0 +1,19 @@
+{
+  "chat/message.referenceSeparator": "、",
+  "chat/message.stepProcess.comma": "、",
+  "conversation/detail.weekday.join": "、",
+  "workspace/archive.confirm.listSeparator": "、",
+  "agentTeams/format.listSeparator": "、",
+  "sidebarExcel/featureSeparator": "、",
+  "pluginManager/registryListSeparator": "、",
+
+  "chat/duration.hourUnit": "時間",
+  "chat/duration.minuteUnit": "分",
+  "chat/duration.secondUnit": "秒",
+
+  "chat/message.stepProcess.done.edit": "ファイルを編集しました",
+  "chat/message.stepProcess.done.questions": "質問しました",
+  "chat/message.stepProcess.done.subagents": "サブエージェントを連携しました",
+  "chat/message.stepProcess.done.tools": "ツールを呼び出しました",
+  "chat/message.stepProcess.done.webFetch": "Web ページを訪問しました"
+}

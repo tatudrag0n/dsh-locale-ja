@@ -1,0 +1,23 @@
+{
+  "namespace": "settings.sessionLog",
+  "package": "@deepseek-ai/dsh-client-ui-settings-session-log",
+  "keys": {
+    "description": "Help improve DeepSeek models and products.",
+    "failed": "Could not save preference",
+    "saved": "Preference saved",
+    "title": "Upload Session Log when using the official model API"
+  },
+  "zh": {
+    "description": "帮助改进 DeepSeek 模型与产品",
+    "failed": "无法保存设置",
+    "saved": "设置已保存",
+    "title": "在使用官方模型 API 时上传 Session Log"
+  },
+  "ja": {
+    "description": "DeepSeek のモデルと製品の改善にご協力ください。",
+    "failed": "設定を保存できませんでした",
+    "saved": "設定を保存しました",
+    "title": "公式モデル API 使用時にセッションログをアップロード"
+  },
+  "unresolved": []
+}

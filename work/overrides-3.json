@@ -1,0 +1,16 @@
+{
+  "chat/chat.loadError": "履歴の読み込みに失敗しました: {message}（{code}）",
+  "chat/message.turnUsage.reasoning": " （推論 {tokens}）",
+  "conversation/terminal.sendInput": "（入力を送信）",
+  "cordis/purpose.missing": "（目的の指定なし）",
+  "job/terminal.noOutput": "（出力なし）",
+  "plan/chip.on.title": "プランモードがオン — クリックでオフ（/plan off）",
+  "reference/candidate.noCwd": "（作業ディレクトリなし）",
+  "schedule.manager/rule.zone.system": " （システム）",
+  "trajectory/record.toolCallOnly": "（ツール呼び出しのみ）",
+  "workspace/viewOptions.showArchived": "すべての会話（アーカイブを表示）",
+
+  "conversation/ask.rowTitle": "質問",
+  "conversation/detail.receipt.closed": "終了",
+  "conversation/detail.receipt.closing": "終了中"
+}

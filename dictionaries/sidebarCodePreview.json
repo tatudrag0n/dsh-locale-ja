@@ -1,0 +1,20 @@
+{
+  "namespace": "sidebarCodePreview",
+  "package": "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
+  "keys": {
+    "copied": "Copied",
+    "copy": "Copy",
+    "title": "Code"
+  },
+  "zh": {
+    "copied": "已复制",
+    "copy": "复制",
+    "title": "代码"
+  },
+  "ja": {
+    "copied": "コピーしました",
+    "copy": "コピー",
+    "title": "コード"
+  },
+  "unresolved": []
+}
