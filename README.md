@@ -72,7 +72,7 @@ node tools/build.mjs --check
 ### リリース手順（メンテナー）
 
 1. `package.json` の `version` を更新する。
-2. `main` にマージ後、`v<version>` タグを push する（例: `v1.0.1`）。
+2. `main` にマージ後、`v<version>` タグを push する（例: `v1.0.2`）。
    - もしくは GitHub Actions の `Package and release` を手動実行し、同じタグを入力する。
 3. ワークフローは `package.json` の version とタグの一致を検証し、一致時のみ公開する。
 
