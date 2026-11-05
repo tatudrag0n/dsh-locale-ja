@@ -2,15 +2,20 @@ name: Package and release
 
 on:
   push:
-    branches: [main]
-    paths: ['.github/workflows/release.yml']
+    tags:
+      - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (example: v1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-v1.0.0
+  group: release-${{ github.workflow }}-${{ github.ref_name || github.event.inputs.tag || github.sha }}
   cancel-in-progress: false
 
 jobs:
@@ -18,9 +23,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Resolve and validate release version
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          TAG_INPUT='${{ github.event.inputs.tag || '' }}'
+          if [ -n "$TAG_INPUT" ]; then
+            TAG="$TAG_INPUT"
+          else
+            TAG="$GITHUB_REF_NAME"
+          fi
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "Tag/version mismatch: tag=$TAG package.json=$VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
       - name: Validate language pack
         run: |
           node --test
@@ -30,59 +55,52 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")" = '1.0.0'
+          VERSION='${{ steps.release.outputs.version }}'
           mkdir -p staging/dsh-locale-ja dist
-          cp package.json index.js client.js cordis.patch.yml icon.svg README.md LICENSE staging/dsh-locale-ja/
+          cp package.json index.js client.js cordis.patch.yml icon.svg README.md LICENSE install.mjs staging/dsh-locale-ja/
           cp -R dictionaries tools staging/dsh-locale-ja/
           cp client.src.js staging/dsh-locale-ja/
-          cat > staging/dsh-locale-ja/INSTALL.txt <<'EOF'
-          DSH Japanese language pack v1.0.0
+          cat > staging/dsh-locale-ja/INSTALL.txt <<'TXT'
+          DSH 日本語ランゲージパック
 
-          This archive contains a language pack, not the DSH application.
-          Requires an existing DSH Web profile, Node.js and pnpm.
-          Extract the archive to a permanent directory. No compilation is needed.
-          Stop DSH and back up your Web profile package.json.
+          前提:
+          - 設定済みの DSH Web プロファイル
+          - Node.js と pnpm
 
-          Windows PowerShell (replace paths):
-            Set-Location 'C:\path\to\dsh\profiles\web'
-            pnpm add '@local/dsh-locale-ja@link:C:/path/to/dsh-locale-ja'
+          手順:
+          1) DSH を停止する
+          2) このアーカイブを固定パスに展開する
+          3) 展開先で実行する: node install.mjs
+             （必要なら明示: node install.mjs --profile /absolute/path/to/dsh/profiles/web）
+          4) DSH を起動し直し、ブラウザーを再読み込みして日本語を選ぶ
 
-          Linux (replace paths):
-            cd /path/to/dsh/profiles/web
-            pnpm add '@local/dsh-locale-ja@link:/path/to/dsh-locale-ja'
-
-          Add "@local/dsh-locale-ja" to dsh.profile.bundles in that profile's
-          package.json, preserving all existing entries. Restart DSH and reload
-          the browser, then select Japanese in Settings > General > Language.
-          Do not move or delete the extracted directory while it is linked.
-
-          See README.md for Japanese instructions, troubleshooting and removal.
-          These are platform-labelled archives of the same JavaScript plugin,
-          not native executables or automatic installers. Full DSH integration
-          on Windows and Linux has not been tested by this packaging workflow.
-          EOF
-          (cd staging && zip -qr ../dist/dsh-locale-ja-1.0.0-windows.zip dsh-locale-ja)
-          tar -czf dist/dsh-locale-ja-1.0.0-linux.tar.gz -C staging dsh-locale-ja
-          (cd dist && sha256sum dsh-locale-ja-1.0.0-windows.zip dsh-locale-ja-1.0.0-linux.tar.gz > SHA256SUMS)
+          補足:
+          - v1.0.0 の旧アーカイブには install.mjs は含まれません
+          - link: 参照を使うため、展開したフォルダーを移動・削除しないでください
+          TXT
+          (cd staging && zip -qr "../dist/dsh-locale-ja-${VERSION}-windows.zip" dsh-locale-ja)
+          tar -czf "dist/dsh-locale-ja-${VERSION}-linux.tar.gz" -C staging dsh-locale-ja
+          (cd dist && sha256sum "dsh-locale-ja-${VERSION}-windows.zip" "dsh-locale-ja-${VERSION}-linux.tar.gz" > SHA256SUMS)
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          cat > release-notes.md <<'EOF'
-          ## 日本語ランゲージパック v1.0.0
+          VERSION='${{ steps.release.outputs.version }}'
+          TAG='${{ steps.release.outputs.tag }}'
+          cat > release-notes.md <<'EOF_NOTES'
+          ## 日本語ランゲージパック
 
-          - Windows: dsh-locale-ja-1.0.0-windows.zip
-          - Linux: dsh-locale-ja-1.0.0-linux.tar.gz
-          - SHA256SUMS: 配布ファイルのSHA-256チェックサム
+          - Windows / Linux アーカイブに `install.mjs` を同梱
+          - 展開先で `node install.mjs` を実行して導入可能
+          - `SHA256SUMS` を同梱
+          - `v1.0.0` の旧アーカイブにはインストーラーはありません
 
-          ダウンロードして任意の固定フォルダーに展開し、同梱のREADME.md / INSTALL.txtに従ってDSHのWebプロファイルに登録してください。翻訳パックはビルド済みです。
-
-          DSH本体・Node.js・pnpmは含まれません。両アーカイブは同じJavaScriptプラグインを収録しており、ネイティブ実行ファイルや自動インストーラーではありません。辞書・生成物の検査は実施しますが、Windows/Linux上のDSH実環境での動作保証を意味しません。
-          EOF
-          if gh release view v1.0.0 >/dev/null 2>&1; then
-            echo 'Release v1.0.0 already exists; refusing to overwrite it.' >&2
+          この配布物は言語パックです。DSH 実環境での統合動作は、利用者の環境で確認してください。
+          EOF_NOTES
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to overwrite it." >&2
             exit 1
           fi
-          gh release create v1.0.0 dist/dsh-locale-ja-1.0.0-windows.zip dist/dsh-locale-ja-1.0.0-linux.tar.gz dist/SHA256SUMS --target "$GITHUB_SHA" --title 'v1.0.0 — 日本語ランゲージパック' --notes-file release-notes.md
+          gh release create "$TAG" "dist/dsh-locale-ja-${VERSION}-windows.zip" "dist/dsh-locale-ja-${VERSION}-linux.tar.gz" dist/SHA256SUMS --target "$GITHUB_SHA" --title "$TAG — 日本語ランゲージパック" --notes-file release-notes.md
