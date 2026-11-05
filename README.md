@@ -1,140 +1,144 @@
-# 日本語ランゲージパック（dsh-locale-ja）
+# DSH 日本語ランゲージパック
 
-DeepSeek Harness（DSH）の Web UI に「日本語」を追加する言語パックです。
-導入後、`設定 → 一般 → 言語` から「日本語」を選択できます。
-既存の英語・中国語の辞書は置き換えず、訳がないキーは英語にフォールバックします。
+DeepSeek Harness（DSH）の Web UI に日本語を追加する言語パックです。
+設定画面で「日本語」を選ぶと、対応する画面のメニューやメッセージを日本語で表示します。未翻訳の項目は英語で表示されます。
+
+[ダウンロード（Releases）](https://github.com/tatudrag0n/dsh-locale-ja/releases/latest)
+
+## 必要なもの
+
+- セットアップ済みの DSH と Web プロファイル
+- Node.js と pnpm（使用中の DSH 環境に合わせてください）
+
+DSH 本体は付属しません。言語パックはビルド済みなので、Git のインストールやビルド作業は不要です。
 
 ## インストール
 
-作者と同じフォルダー構成にする必要はありません。公開されているこのリポジトリを取得し、自分の DSH の Web プロファイルに登録してください。npm レジストリへの公開は行っていません。
+### 1. ダウンロードして展開
 
-### 必要なもの
+[Releases](https://github.com/tatudrag0n/dsh-locale-ja/releases/latest) の `Assets` から、OS に合ったファイルをダウンロードします。
 
-- インストール済みの DeepSeek Harness と Web プロファイル
-- Node.js と、その DSH 環境で使用している pnpm
-- Git（ZIP で取得する場合は不要）
+| OS | ダウンロードするファイル |
+| --- | --- |
+| Windows | `dsh-locale-ja-<バージョン>-windows.zip` |
+| Linux | `dsh-locale-ja-<バージョン>-linux.tar.gz` |
 
-このパックは DSH のロケールサービス `@deepseek-ai/dsh-client-locale` を使用します。DSH のすべてのバージョンでの動作を保証するものではありません。
+展開した `dsh-locale-ja` フォルダーを、今後も保存しておく場所へ置いてください。このフォルダー内に `package.json` と `client.js` があれば準備完了です。
 
-### 1. 言語パックを取得する
+### 2. DSH に登録
 
-任意の作業フォルダーで実行します。
+DSH を停止し、使用中の Web プロファイルの `package.json` をバックアップします。
+Web プロファイルは通常 `DSH のホーム/profiles/web` にあります。複数のプロファイルがある場合は、実際に使用しているものを選んでください。
 
-```sh
-git clone https://github.com/tatudrag0n/dsh-locale-ja.git
-```
+以下のパスを自分の環境に置き換えて実行します。
 
-Git を使わない場合は、このページの `Code → Download ZIP` から取得して展開してください。
-`package.json` と `client.js` が直接入っているフォルダーが言語パックのフォルダーです。
-生成済みの `client.js` を同梱しているため、通常の導入に翻訳辞書の再生成やビルドは不要です。
-
-### 2. Web プロファイルに依存関係を追加する
-
-DSH を停止し、使用中の Web プロファイルの `package.json` をバックアップしてください。
-通常の配置例は `$DSH_HOME/profiles/web/package.json` ですが、環境変数が設定されているとは限りません。実際に使用しているプロファイルを指定してください。
-
-Web プロファイルのフォルダーへ移動し、取得した言語パックの絶対パスで実行します。
-
-Windows / PowerShell の例（パスは自分の環境に置き換える）：
+#### Windows（PowerShell）
 
 ```powershell
+# DSH の Web プロファイルへ移動
 Set-Location 'C:\path\to\dsh\profiles\web'
+
+# 展開した言語パックを登録（link: のパスは / 区切り）
 pnpm add '@local/dsh-locale-ja@link:C:/path/to/dsh-locale-ja'
 ```
 
-macOS / Linux の例（パスは自分の環境に置き換える）：
+#### Linux（ターミナル）
 
 ```sh
-cd /path/to/dsh/profiles/web
+# DSH の Web プロファイルへ移動
+cd '/path/to/dsh/profiles/web'
+
+# 展開した言語パックを登録
 pnpm add '@local/dsh-locale-ja@link:/path/to/dsh-locale-ja'
 ```
 
-`link:` は手元のフォルダーを参照します。導入後も言語パックのフォルダーを削除・移動しないでください。Windows の依存指定では `/` 区切りを使用します。
-
-### 3. bundles に登録する
-
-同じ Web プロファイルの `package.json` にある `dsh.profile.bundles` の末尾へ `@local/dsh-locale-ja` を追加します。既存の依存関係・設定・bundles は残してください。同じ項目を二重に追加しないでください。
-
-以下は構造の例です。ファイル全体をこの例で置き換えないでください。
+続いて、同じ Web プロファイルの `package.json` を開き、`dsh` → `profile` → `bundles` の配列の末尾に、次の文字列を追加します。
 
 ```json
-{
-  "dependencies": {
-    "@local/dsh-locale-ja": "link:/absolute/path/to/dsh-locale-ja"
-  },
-  "dsh": {
-    "profile": {
-      "bundles": [
-        "@local/dsh-locale-ja"
-      ]
-    }
-  }
-}
+"@local/dsh-locale-ja"
 ```
 
-`dependencies` の実際のパスは手順 2 の `pnpm add` で設定されます。Windows なら `link:C:/path/to/dsh-locale-ja` のような値になります。
+既存の項目は削除せず、直前の項目との間にカンマを入れてください。すでに登録されている場合は追加不要です。依存関係の欄は、上の `pnpm add` が設定します。
 
-### 4. 再起動して日本語を選ぶ
+> `link:` は展開先をそのまま参照します。導入後に言語パックのフォルダーを移動・削除しないでください。
 
-DSH を起動し、ブラウザーのページを再読み込みします。
-`設定 → 一般 → 言語` で「日本語」を選んでください。
+### 3. 日本語を選ぶ
 
-### 日本語が表示されない場合
+DSH を起動し、ブラウザーを再読み込みします。
+`Settings → General → Language`（設定 → 一般 → 言語）で「日本語」を選んで完了です。
 
-- 編集した `package.json` が、実際に起動している Web プロファイルのものか確認する。
-- `dependencies` と `dsh.profile.bundles` の両方に `@local/dsh-locale-ja` があるか確認する。
-- `link:` の参照先に `package.json` と `client.js` があるか確認する。
-- DSH を再起動し、ブラウザーを再読み込みする。
-- ロケールサービスやプラグイン読み込みのエラーが出ていないか確認する。
+## よくある質問
 
-配線の確認用ツールもあります。言語パックのフォルダーから実行し、対象プロファイルを明示してください。
+### ダウンロードしただけで使えますか？
+
+DSH 側への登録が必要です。上記の手順 2 と 3 を実施してください。配布物は言語パックであり、自動インストーラーではありません。
+
+### 「日本語」が表示されません
+
+次の点を確認してください。
+
+- 編集したのが、起動中の DSH で使用している Web プロファイルの `package.json` であること
+- `dependencies` と `dsh.profile.bundles` の両方に `@local/dsh-locale-ja` があること
+- `link:` の参照先に `package.json` と `client.js` があること
+- DSH の再起動と、ブラウザーの再読み込みを行ったこと
+
+解決しない場合は、DSH のログでプラグインやロケールサービスの読み込みエラーを確認してください。
+
+### 一部だけ英語のままです
+
+未翻訳の項目や、DSH の更新で追加された項目は英語で表示されます。また、コマンドの説明など一部の表示は、言語変更後に DSH の再起動が必要な場合があります。
+
+### 対応バージョンは？
+
+DSH のロケールサービス `@deepseek-ai/dsh-client-locale` を使用します。すべての DSH バージョンでの動作や、Windows・Linux の実環境での互換性を保証するものではありません。
+
+## 更新
+
+1. DSH を停止する。
+2. 新しい Release をダウンロードして展開し、現在の言語パックのフォルダーを新しい内容に置き換える。
+3. DSH を起動し、ブラウザーを再読み込みする。
+
+展開先のパスが同じなら再登録は不要です。パスを変更した場合は、新しいパスでインストール手順 2 を実行してください。自分で変更した辞書などがある場合は、更新前にバックアップしてください。
+
+## アンインストール
+
+1. 必要に応じて表示言語を英語へ戻し、DSH を停止する。
+2. Web プロファイルの `package.json` の `dsh.profile.bundles` から `@local/dsh-locale-ja` を削除する。
+3. Web プロファイルのフォルダーで次を実行する。
 
 ```sh
-node tools/verify-install.mjs --profile /absolute/path/to/dsh/profiles/web
+pnpm remove @local/dsh-locale-ja
 ```
 
-## 更新・アンインストール
+DSH を起動し、ブラウザーを再読み込みします。その後、言語パックのフォルダーも削除できます。
 
-### 更新
+## 不具合報告
 
-Git で取得した場合は、言語パックのフォルダーで実行します。
+[Issues](https://github.com/tatudrag0n/dsh-locale-ja/issues) に、OS、DSH のバージョン、言語パックのバージョン、再現手順、エラーメッセージを添えて報告してください。ログに含まれる API キーや個人情報は削除してください。
 
-```sh
-git pull --ff-only
-```
+## 開発・翻訳への参加
 
-ZIP で取得した場合は、新しい ZIP を展開し、参照先の言語パックを更新してください。ローカルで変更したファイルは事前にバックアップしてください。
-更新後は DSH を再起動し、ブラウザーを再読み込みします。
+通常のインストールでは、以下の作業は不要です。
 
-### アンインストール
+### 主なファイル
 
-1. 必要に応じて UI の言語を英語に戻し、DSH を停止する。
-2. Web プロファイルの `dsh.profile.bundles` から `@local/dsh-locale-ja` だけを削除する。
-3. Web プロファイルのフォルダーで `pnpm remove @local/dsh-locale-ja` を実行する。
-4. DSH を起動し、ブラウザーを再読み込みする。
+| ファイル | 内容 |
+| --- | --- |
+| `client.js` | 日本語辞書を含む生成済みクライアント。直接編集しない |
+| `client.src.js` | 言語・辞書の登録処理 |
+| `dictionaries/` | 名前空間ごとの翻訳辞書 |
+| `index.js` / `cordis.patch.yml` | DSH への組み込み |
+| `tools/` | 辞書抽出・翻訳反映・ビルド・検証ツール |
+| `test/` | パーサー・辞書・生成物のテスト |
+| `work/` | 翻訳作業の記録。Release パッケージには含まれない |
 
-参照を解除した後は、取得した言語パックのフォルダーも削除できます。
+### 仕組み
 
-## 仕組み
+`ctx.locale.addLanguage` で「日本語」を追加し、`ctx.locale.register` で名前空間ごとに日本語辞書を登録します。既存の英語・中国語辞書は置き換えません。登録は `ctx.effect` で管理されます。
 
-`client.js` は `client.src.js` と辞書から生成します。
+### 翻訳の更新
 
-```js
-ctx.effect(() => ctx.locale.addLanguage({ id: 'ja', label: '日本語', fallback: 'en' }), 'locale-ja: language')
-for (const [namespace, dictionary] of Object.entries(DICTIONARIES)) {
-  ctx.effect(() => ctx.locale.register(namespace, 'ja', dictionary), `locale-ja: ${namespace}`)
-}
-```
-
-- `addLanguage` で言語一覧に `ja` を追加します。
-- `register` で名前空間ごとの日本語辞書を登録します。
-- 登録は `ctx.effect` が管理し、プラグインを外すと解除されます。
-- 同じ名前空間の日本語辞書が競合した場合は、その名前空間をスキップして残りを読み込みます。
-
-## 開発・翻訳更新
-
-通常の利用者は以下の作業を行う必要はありません。
-言語パックのフォルダーで実行してください。抽出には DSH 本体のインストール環境が必要です。環境固有の設定は各ツールを確認してください。
+リポジトリのルートで実行します。辞書の再抽出には DSH 本体のインストール環境が必要です。環境固有の設定は各ツールを確認してください。
 
 ```sh
 node tools/extract.mjs
@@ -142,30 +146,11 @@ node tools/make-work.mjs
 # work/chunks/chunk-NN.json を訳し、out-NN.json に保存
 node tools/apply-translations.mjs --strict
 node tools/build.mjs
-node --test
 ```
 
-| ファイル | 役割 |
-| --- | --- |
-| `client.src.js` | クライアント処理のテンプレート |
-| `client.js` | ブラウザーが読み込む生成物。直接編集しない |
-| `dictionaries/` | 名前空間別の英語キー・中国語・日本語辞書 |
-| `tools/extract.mjs` | DSH のクライアントバンドルから辞書を抽出 |
-| `tools/literal.mjs` | オブジェクトリテラルのパーサー |
-| `tools/make-work.mjs` | 英語文字列を重複排除し翻訳チャンクを生成 |
-| `tools/apply-translations.mjs` | 原文と ID を検証して訳を反映 |
-| `tools/set-translation.mjs` | 訳文修正をチャンクに反映 |
-| `tools/build.mjs` | 辞書から `client.js` を生成 |
-| `tools/check.mjs` | カバレッジ・未訳・空訳・プレースホルダーを検査 |
-| `tools/variants.mjs` | 表記ゆれを検出 |
-| `tools/lookup.mjs` | ID から名前空間とキーを逆引き |
-| `tools/list-registers.mjs` | 名前空間の登録元を一覧表示 |
-| `tools/verify-install.mjs` | プロファイルの依存・bundles・解決・バンドルを検証 |
+辞書は抽出時点の DSH を基準にしています。同じ英語文字列は重複を除いて翻訳し、各キーに適用します。
 
-`work/` は翻訳作業の記録で、パッケージの配布対象には含まれません。
-同じ英語文字列は一度だけ訳し、各キーに同じ訳を適用します。
-
-## 検証
+### 検証
 
 ```sh
 node --test
@@ -174,16 +159,16 @@ node tools/build.mjs --check
 node tools/variants.mjs
 ```
 
-`test/pack.test.mjs` は生成された `client.js` をモジュールローダーのスタブで実行し、言語と辞書の登録を検査します。
+`test/pack.test.mjs` は生成済みの `client.js` をモジュールローダーのスタブで実行し、言語・辞書の登録を検査します。これらの検査は DSH 実環境での動作確認に代わるものではありません。
 
-## 既知の制約
+プロファイルへの登録状態は、言語パックのフォルダーから次のコマンドで確認できます。
 
-- 訳のないキーは英語で表示されます。
-- 辞書は抽出時点の DSH を基準にしているため、本体更新で追加されたキーには再抽出・翻訳が必要です。
-- コマンド説明など、登録時点の文言を保持する箇所は、言語変更後に再登録や再起動が必要な場合があります。
-- この言語パックは複数形の使い分けや双方向レイアウトを追加するものではありません。
-- Windows・macOS・Linux それぞれの実環境での導入確認は別途必要です。
+```sh
+node tools/verify-install.mjs --profile /absolute/path/to/dsh/profiles/web
+```
+
+その他の補助ツール：`tools/set-translation.mjs`（訳文修正）、`tools/lookup.mjs`（ID の逆引き）、`tools/list-registers.mjs`（名前空間の登録元）、`tools/literal.mjs`（抽出用パーサー）。このパックは複数形処理や双方向レイアウトを追加するものではありません。
 
 ## ライセンス
 
-MIT
+[MIT](LICENSE)
