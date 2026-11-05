@@ -32,6 +32,9 @@ node install.mjs --profile /absolute/path/to/dsh/profiles/web
 
 ## トラブルシュート
 
+- Windows で `v1.0.1` の `node install.mjs` がすぐ終了して導入されない:
+  - `v1.0.1` のインストーラーには Windows の `pnpm.cmd` 実行まわりの不具合があります。
+  - 修正を含む次のリリース（`v1.0.2`）が利用可能になったら更新してください。
 - `pnpm was not found in PATH`:
   - pnpm をインストールして PATH を通したあと、再実行してください。
 - プロファイル自動検出に失敗する / 複数候補が見つかる:
