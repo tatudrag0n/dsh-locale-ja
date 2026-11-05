@@ -1,0 +1,88 @@
+name: Package and release
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-v1.0.0
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate language pack
+        run: |
+          node --test
+          node tools/check.mjs --strict
+          node tools/build.mjs --check
+      - name: Build distributable archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")" = '1.0.0'
+          mkdir -p staging/dsh-locale-ja dist
+          cp package.json index.js client.js cordis.patch.yml icon.svg README.md LICENSE staging/dsh-locale-ja/
+          cp -R dictionaries tools staging/dsh-locale-ja/
+          cp client.src.js staging/dsh-locale-ja/
+          cat > staging/dsh-locale-ja/INSTALL.txt <<'EOF'
+          DSH Japanese language pack v1.0.0
+
+          This archive contains a language pack, not the DSH application.
+          Requires an existing DSH Web profile, Node.js and pnpm.
+          Extract the archive to a permanent directory. No compilation is needed.
+          Stop DSH and back up your Web profile package.json.
+
+          Windows PowerShell (replace paths):
+            Set-Location 'C:\path\to\dsh\profiles\web'
+            pnpm add '@local/dsh-locale-ja@link:C:/path/to/dsh-locale-ja'
+
+          Linux (replace paths):
+            cd /path/to/dsh/profiles/web
+            pnpm add '@local/dsh-locale-ja@link:/path/to/dsh-locale-ja'
+
+          Add "@local/dsh-locale-ja" to dsh.profile.bundles in that profile's
+          package.json, preserving all existing entries. Restart DSH and reload
+          the browser, then select Japanese in Settings > General > Language.
+          Do not move or delete the extracted directory while it is linked.
+
+          See README.md for Japanese instructions, troubleshooting and removal.
+          These are platform-labelled archives of the same JavaScript plugin,
+          not native executables or automatic installers. Full DSH integration
+          on Windows and Linux has not been tested by this packaging workflow.
+          EOF
+          (cd staging && zip -qr ../dist/dsh-locale-ja-1.0.0-windows.zip dsh-locale-ja)
+          tar -czf dist/dsh-locale-ja-1.0.0-linux.tar.gz -C staging dsh-locale-ja
+          (cd dist && sha256sum dsh-locale-ja-1.0.0-windows.zip dsh-locale-ja-1.0.0-linux.tar.gz > SHA256SUMS)
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<'EOF'
+          ## 日本語ランゲージパック v1.0.0
+
+          - Windows: dsh-locale-ja-1.0.0-windows.zip
+          - Linux: dsh-locale-ja-1.0.0-linux.tar.gz
+          - SHA256SUMS: 配布ファイルのSHA-256チェックサム
+
+          ダウンロードして任意の固定フォルダーに展開し、同梱のREADME.md / INSTALL.txtに従ってDSHのWebプロファイルに登録してください。翻訳パックはビルド済みです。
+
+          DSH本体・Node.js・pnpmは含まれません。両アーカイブは同じJavaScriptプラグインを収録しており、ネイティブ実行ファイルや自動インストーラーではありません。辞書・生成物の検査は実施しますが、Windows/Linux上のDSH実環境での動作保証を意味しません。
+          EOF
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            echo 'Release v1.0.0 already exists; refusing to overwrite it.' >&2
+            exit 1
+          fi
+          gh release create v1.0.0 dist/dsh-locale-ja-1.0.0-windows.zip dist/dsh-locale-ja-1.0.0-linux.tar.gz dist/SHA256SUMS --target "$GITHUB_SHA" --title 'v1.0.0 — 日本語ランゲージパック' --notes-file release-notes.md
