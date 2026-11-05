@@ -32,6 +32,9 @@ node install.mjs --profile /absolute/path/to/dsh/profiles/web
 
 ## トラブルシュート
 
+- Windows で `v1.0.1` の `node install.mjs` がすぐ終了して導入されない:
+  - `v1.0.1` のインストーラーには Windows の `pnpm.cmd` 実行まわりの不具合があります。
+  - 修正を含む次のリリース（`v1.0.2`）が利用可能になったら更新してください。
 - `pnpm was not found in PATH`:
   - pnpm をインストールして PATH を通したあと、再実行してください。
 - プロファイル自動検出に失敗する / 複数候補が見つかる:
@@ -69,7 +72,7 @@ node tools/build.mjs --check
 ### リリース手順（メンテナー）
 
 1. `package.json` の `version` を更新する。
-2. `main` にマージ後、`v<version>` タグを push する（例: `v1.0.1`）。
+2. `main` にマージ後、`v<version>` タグを push する（例: `v1.0.2`）。
    - もしくは GitHub Actions の `Package and release` を手動実行し、同じタグを入力する。
 3. ワークフローは `package.json` の version とタグの一致を検証し、一致時のみ公開する。
 

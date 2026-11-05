@@ -14,8 +14,8 @@ function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function toLinkPath(pathname) {
-  return pathname.replaceAll('\\\\', '/')
+export function toLinkPath(pathname) {
+  return pathname.replaceAll('\\', '/')
 }
 
 function parseArgs(argv) {
@@ -124,13 +124,97 @@ async function promptProfile() {
   }
 }
 
-function detectPnpm() {
-  const commands = process.platform === 'win32' ? ['pnpm.cmd', 'pnpm'] : ['pnpm', 'pnpm.cmd']
-  for (const command of commands) {
-    const result = spawnSync(command, ['--version'], { stdio: 'ignore', shell: false })
-    if (result.status === 0) return command
+function formatSpawnFailure(result) {
+  if (result.error instanceof Error) {
+    const code = typeof result.error.code === 'string' ? ` (${result.error.code})` : ''
+    return `${result.error.message}${code}`
   }
-  return null
+  if (result.signal !== null) return `terminated by signal ${result.signal}`
+  if (typeof result.status === 'number') return `exit status ${String(result.status)}`
+  return 'unknown failure'
+}
+
+function appendAttempt(attempts, target, result) {
+  attempts.push(`${target}: ${formatSpawnFailure(result)}`)
+}
+
+function resolveWindowsPnpmEntryFromShim(shimPath) {
+  let text
+  try {
+    text = readFileSync(shimPath, 'utf8')
+  } catch {
+    return null
+  }
+  const match = text.match(/"%~dp0\\([^"\r\n]+\.c?js)"/iu)
+  if (!match) return null
+  const relative = match[1].replaceAll('\\', '/')
+  return resolve(dirname(shimPath), relative)
+}
+
+function listWindowsPnpmCandidates(env) {
+  const pathValue = typeof env.PATH === 'string' ? env.PATH : ''
+  const directories = pathValue.split(';').filter(Boolean)
+  const candidates = []
+  for (const directory of directories) {
+    candidates.push(join(directory, 'pnpm.cmd'))
+    candidates.push(join(directory, 'pnpm.bat'))
+    candidates.push(join(directory, 'pnpm.exe'))
+    candidates.push(join(directory, 'pnpm'))
+  }
+  return [...new Set(candidates)]
+}
+
+function detectPnpmOnWindows({ env, attempts }) {
+  const shimCandidates = listWindowsPnpmCandidates(env)
+  for (const candidate of shimCandidates) {
+    if (!existsSync(candidate)) continue
+    const lower = candidate.toLowerCase()
+    if (lower.endsWith('.cmd') || lower.endsWith('.bat')) {
+      const entry = resolveWindowsPnpmEntryFromShim(candidate)
+      if (entry === null || !existsSync(entry)) {
+        attempts.push(`${candidate}: could not resolve a pnpm JavaScript entry from shim`)
+        continue
+      }
+      const result = spawnSync(process.execPath, [entry, '--version'], { stdio: 'ignore', shell: false, env })
+      if (result.status === 0) return { command: process.execPath, args: [entry], attempts }
+      appendAttempt(attempts, `${process.execPath} ${entry} --version`, result)
+      continue
+    }
+    const result = spawnSync(candidate, ['--version'], { stdio: 'ignore', shell: false, env })
+    if (result.status === 0) return { command: candidate, args: [], attempts }
+    appendAttempt(attempts, `${candidate} --version`, result)
+  }
+
+  const corepackEntry = resolve(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js')
+  if (existsSync(corepackEntry)) {
+    const result = spawnSync(process.execPath, [corepackEntry, '--version'], { stdio: 'ignore', shell: false, env })
+    if (result.status === 0) return { command: process.execPath, args: [corepackEntry], attempts }
+    appendAttempt(attempts, `${process.execPath} ${corepackEntry} --version`, result)
+  }
+
+  return { command: null, args: [], attempts }
+}
+
+function detectPnpm(env = process.env) {
+  const attempts = []
+  if (process.platform === 'win32') return detectPnpmOnWindows({ env, attempts })
+  const commands = ['pnpm', 'pnpm.cmd']
+  for (const command of commands) {
+    const result = spawnSync(command, ['--version'], { stdio: 'ignore', shell: false, env })
+    if (result.status === 0) return { command, args: [], attempts }
+    appendAttempt(attempts, `${command} --version`, result)
+  }
+  return { command: null, args: [], attempts }
+}
+
+export function isDirectCliInvocation(argv1 = process.argv[1]) {
+  if (typeof argv1 !== 'string' || argv1.trim() === '') return false
+  const expected = normalize(resolve(fileURLToPath(import.meta.url)))
+  const actual = normalize(resolve(argv1))
+  if (process.platform === 'win32') {
+    return expected.toLowerCase() === actual.toLowerCase()
+  }
+  return expected === actual
 }
 
 function dedupeBundleEntries(entries) {
@@ -175,9 +259,10 @@ export async function runInstaller({ argv = process.argv.slice(2), env = process
     }
   }
 
-  const pnpm = detectPnpm()
-  if (pnpm === null) {
-    throw new Error('pnpm was not found in PATH. Install pnpm first, then re-run this installer.')
+  const pnpm = detectPnpm(env)
+  if (pnpm.command === null) {
+    const details = pnpm.attempts.length > 0 ? ` Attempts: ${pnpm.attempts.join(' | ')}` : ''
+    throw new Error(`pnpm was not found in PATH. Install pnpm first, then re-run this installer.${details}`)
   }
 
   const { manifestPath, profileDir } = inspected
@@ -202,7 +287,7 @@ export async function runInstaller({ argv = process.argv.slice(2), env = process
   process.stdout.write(`Backup: ${backupPath}\n`)
   process.stdout.write(`Dependency: ${PACKAGE_NAME} -> ${dependencySpec}\n`)
 
-  const result = spawnSync(pnpm, ['install'], {
+  const result = spawnSync(pnpm.command, [...pnpm.args, 'install'], {
     cwd: profileDir,
     stdio: 'inherit',
     shell: false,
@@ -210,7 +295,7 @@ export async function runInstaller({ argv = process.argv.slice(2), env = process
 
   if (result.status !== 0) {
     writeFileSync(manifestPath, originalText, 'utf8')
-    throw new Error('pnpm install failed. Profile package.json was restored from backup. lockfile/node_modules may still contain partial changes from pnpm.')
+    throw new Error(`pnpm install failed (${formatSpawnFailure(result)}). Profile package.json was restored from backup. lockfile/node_modules may still contain partial changes from pnpm.`)
   }
 
   process.stdout.write('Installation updated profile configuration successfully.\n')
@@ -223,7 +308,7 @@ export async function runInstaller({ argv = process.argv.slice(2), env = process
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isDirectCliInvocation()) {
   runInstaller().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
     process.exitCode = 1
