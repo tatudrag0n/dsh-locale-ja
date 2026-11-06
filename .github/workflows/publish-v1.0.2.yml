@@ -1,0 +1,54 @@
+name: Initiate v1.0.2 release
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v1.0.2.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: initiate-v1.0.2
+  cancel-in-progress: false
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test
+      - run: node tools/check.mjs --strict
+      - run: node tools/build.mjs --check
+  initiate:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate version, create tag and dispatch publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")" = '1.0.2'
+          TAG='v1.0.2'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo 'v1.0.2 already published; nothing to do.'
+            exit 0
+          fi
+          if EXISTING=$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null); then
+            test "$EXISTING" = "$GITHUB_SHA" || { echo 'Existing tag targets a different commit; refusing to overwrite.' >&2; exit 1; }
+          else
+            gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$GITHUB_SHA"
+          fi
+          gh workflow run release.yml --repo "$GH_REPO" --ref main -f "tag=$TAG"

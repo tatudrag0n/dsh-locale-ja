@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-locale-ja",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Japanese language pack for the DSH Web UI: registers 日本語 in the Language setting and its dictionaries for every installed client namespace.",
