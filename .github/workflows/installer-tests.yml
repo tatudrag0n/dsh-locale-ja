@@ -18,6 +18,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test
+      - name: Run all tests and preserve TAP output
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-reporter=tap 2>&1 | tee test-results.tap
       - run: node tools/check.mjs --strict
       - run: node tools/build.mjs --check
+      - name: Upload test output even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ matrix.os }}
+          path: test-results.tap
+          retention-days: 7
+          if-no-files-found: warn
