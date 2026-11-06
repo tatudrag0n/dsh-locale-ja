@@ -1,231 +1,118 @@
 #!/usr/bin/env node
-
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { mkdir } from 'node:fs/promises'
-import { dirname, isAbsolute, join, normalize, resolve } from 'node:path'
+import { existsSync, readFileSync, writeFileSync, realpathSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { randomUUID } from 'node:crypto'
 import readline from 'node:readline/promises'
 
-const PACKAGE_NAME = '@local/dsh-locale-ja'
-const REQUIRED_PACK_FILES = ['package.json', 'index.js', 'client.js', 'cordis.patch.yml']
-
-function isPlainObject(value) {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
+const NAME = '@local/dsh-locale-ja'
+const object = value => value !== null && typeof value === 'object' && !Array.isArray(value)
+export function toLinkPath(pathname) {
+  return pathname.replaceAll('\\', '/')
 }
-
-function toLinkPath(pathname) {
-  return pathname.replaceAll('\\\\', '/')
+function json(pathname) {
+  const value = JSON.parse(readFileSync(pathname, 'utf8'))
+  if (!object(value)) throw new Error(`Expected a JSON object: ${pathname}`)
+  return value
 }
-
-function parseArgs(argv) {
-  let profile
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index]
-    if (arg === '--profile') {
-      const value = argv[index + 1]
-      if (typeof value !== 'string' || value.startsWith('--')) {
-        throw new Error('`--profile` requires a directory path')
-      }
-      profile = value
-      index += 1
-      continue
-    }
-    throw new Error(`Unknown argument: ${arg}`)
-  }
-  return { profile }
-}
-
-function readJson(pathname, label) {
-  let parsed
-  try {
-    parsed = JSON.parse(readFileSync(pathname, 'utf8'))
-  } catch (error) {
-    throw new Error(`${label} is not valid JSON (${error instanceof Error ? error.message : String(error)})`)
-  }
-  if (!isPlainObject(parsed)) throw new Error(`${label} must be a JSON object`)
-  return parsed
-}
-
-function ensurePackRuntimeFiles(packDir) {
-  for (const file of REQUIRED_PACK_FILES) {
-    const target = join(packDir, file)
-    if (!existsSync(target)) throw new Error(`Required runtime file is missing: ${target}`)
-  }
-  const manifest = readJson(join(packDir, 'package.json'), 'Pack package.json')
-  if (manifest.name !== PACKAGE_NAME) {
-    throw new Error(`Pack package.json name must be ${PACKAGE_NAME}`)
-  }
-}
-
-function ensureProfileManifestStructure(manifest, manifestPath) {
-  if (!isPlainObject(manifest.dsh)) {
-    throw new Error(`Profile package.json is missing dsh object (${manifestPath})`)
-  }
-  if (!isPlainObject(manifest.dsh.profile)) {
-    throw new Error(`Profile package.json is missing dsh.profile object (${manifestPath})`)
-  }
-  if (!Array.isArray(manifest.dsh.profile.bundles)) {
-    throw new Error(`Profile package.json is missing dsh.profile.bundles array (${manifestPath})`)
-  }
-  if (manifest.dsh.profile.bundles.some((entry) => typeof entry !== 'string')) {
-    throw new Error(`Profile dsh.profile.bundles must contain only strings (${manifestPath})`)
-  }
-  if (manifest.dependencies !== undefined && !isPlainObject(manifest.dependencies)) {
-    throw new Error(`Profile dependencies must be an object when present (${manifestPath})`)
-  }
-}
-
-function inspectProfile(profileDir) {
+function inspect(directory) {
+  const profileDir = realpathSync(resolve(directory))
   const manifestPath = join(profileDir, 'package.json')
-  if (!existsSync(manifestPath)) throw new Error(`Missing ${manifestPath}`)
-  const manifest = readJson(manifestPath, `Profile package.json (${manifestPath})`)
-  ensureProfileManifestStructure(manifest, manifestPath)
+  const manifest = json(manifestPath)
+  if (!object(manifest.dsh) || !object(manifest.dsh.profile) || !Array.isArray(manifest.dsh.profile.bundles)) {
+    throw new Error(`Invalid DSH profile: missing dsh.profile.bundles array (${manifestPath})`)
+  }
+  if (manifest.dsh.profile.bundles.some(value => typeof value !== 'string')) throw new Error('Profile bundles must contain only strings')
+  if (manifest.dependencies !== undefined && !object(manifest.dependencies)) throw new Error('Profile dependencies must be an object')
   return { profileDir, manifestPath, manifest }
 }
-
-function maybeInspectProfile(profileDir) {
-  try {
-    return { ok: true, ...inspectProfile(profileDir) }
-  } catch (error) {
-    return {
-      ok: false,
-      profileDir,
-      reason: error instanceof Error ? error.message : String(error),
-    }
+function args(argv) {
+  if (argv.length === 0) return null
+  if (argv.length !== 2 || argv[0] !== '--profile' || !argv[1] || argv[1].startsWith('--')) {
+    throw new Error('Usage: node install.mjs [--profile <directory>]')
   }
+  return argv[1]
 }
-
-function resolveFromEnvironment(env) {
-  const candidates = []
-  if (typeof env.DSH_PROFILE_DIR === 'string' && env.DSH_PROFILE_DIR.trim() !== '') {
-    candidates.push(resolve(env.DSH_PROFILE_DIR))
+async function selectProfile(explicit, env) {
+  if (explicit !== null) return inspect(explicit)
+  const candidates = [env.DSH_PROFILE_DIR, env.DSH_HOME && join(env.DSH_HOME, 'profiles', 'web')].filter(Boolean)
+  const valid = new Map()
+  for (const directory of candidates) {
+    try {
+      const entry = inspect(directory)
+      const key = process.platform === 'win32' ? entry.profileDir.toLowerCase() : entry.profileDir
+      valid.set(key, entry)
+    } catch {}
   }
-  if (typeof env.DSH_HOME === 'string' && env.DSH_HOME.trim() !== '') {
-    candidates.push(resolve(env.DSH_HOME, 'profiles', 'web'))
-  }
-  const unique = [...new Set(candidates)]
-  const valid = unique.map(maybeInspectProfile).filter((entry) => entry.ok)
-  if (valid.length === 1) return valid[0]
-  if (valid.length > 1) {
-    throw new Error(`Multiple valid profile directories were found. Use --profile explicitly: ${valid.map((entry) => entry.profileDir).join(', ')}`)
-  }
-  return null
-}
-
-async function promptProfile() {
+  if (valid.size > 1) throw new Error('Multiple valid profile directories were found. Use --profile explicitly.')
+  if (valid.size === 1) return [...valid.values()][0]
+  if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error('Could not determine a valid DSH Web profile directory. Use --profile <directory> or set DSH_PROFILE_DIR / DSH_HOME.')
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
   try {
-    const answer = (await rl.question('DSH Web profile directory (contains package.json): ')).trim()
-    if (answer === '') throw new Error('No profile directory was provided')
-    return resolve(answer)
-  } finally {
-    rl.close()
+    const answer = (await rl.question('DSH Web profile directory: ')).trim()
+    if (!answer) throw new Error('No profile directory was provided')
+    return inspect(answer)
+  } finally { rl.close() }
+}
+function runPnpm(action, { cwd, env, stdio }) {
+  if (!['--version', 'install'].includes(action)) throw new Error('Unsupported pnpm action')
+  if (process.platform === 'win32') {
+    const systemRoot = env.SystemRoot || env.SYSTEMROOT
+    if (!systemRoot) throw new Error('SystemRoot is missing; cannot locate Windows cmd.exe')
+    // Only fixed commands enter cmd.exe. Paths travel exclusively through cwd/env.
+    return spawnSync(join(systemRoot, 'System32', 'cmd.exe'), ['/d', '/s', '/c', `pnpm ${action}`], { cwd, env, stdio, shell: false, windowsHide: true })
   }
+  return spawnSync('pnpm', [action], { cwd, env, stdio, shell: false })
 }
-
-function detectPnpm() {
-  const commands = process.platform === 'win32' ? ['pnpm.cmd', 'pnpm'] : ['pnpm', 'pnpm.cmd']
-  for (const command of commands) {
-    const result = spawnSync(command, ['--version'], { stdio: 'ignore', shell: false })
-    if (result.status === 0) return command
-  }
-  return null
+function failure(result) {
+  return result.error?.message || (result.signal ? `signal ${result.signal}` : `exit ${result.status}`)
 }
-
-function dedupeBundleEntries(entries) {
-  const output = []
-  let seen = false
-  for (const entry of entries) {
-    if (entry === PACKAGE_NAME) {
-      if (seen) continue
-      seen = true
-    }
-    output.push(entry)
-  }
-  if (!seen) output.push(PACKAGE_NAME)
-  return output
-}
-
-function ensureAbsoluteProfile(dir) {
-  if (!isAbsolute(dir)) return resolve(dir)
-  return dir
-}
-
-async function ensureParent(pathname) {
-  await mkdir(dirname(pathname), { recursive: true })
-}
-
 export async function runInstaller({ argv = process.argv.slice(2), env = process.env } = {}) {
-  const packDir = normalize(resolve(fileURLToPath(new URL('.', import.meta.url))))
-  ensurePackRuntimeFiles(packDir)
-
-  const { profile: explicitProfile } = parseArgs(argv)
-  let inspected
-  if (typeof explicitProfile === 'string') {
-    inspected = inspectProfile(ensureAbsoluteProfile(explicitProfile))
-  } else {
-    inspected = resolveFromEnvironment(env)
-    if (inspected === null) {
-      const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY)
-      if (!interactive) {
-        throw new Error('Could not determine a valid DSH Web profile directory. Use --profile <directory> or set DSH_PROFILE_DIR / DSH_HOME.')
-      }
-      inspected = inspectProfile(await promptProfile())
-    }
+  const packDir = realpathSync(fileURLToPath(new URL('.', import.meta.url)))
+  for (const file of ['package.json', 'index.js', 'client.js', 'cordis.patch.yml']) {
+    if (!existsSync(join(packDir, file))) throw new Error(`Required runtime file is missing: ${file}`)
   }
-
-  const pnpm = detectPnpm()
-  if (pnpm === null) {
-    throw new Error('pnpm was not found in PATH. Install pnpm first, then re-run this installer.')
+  if (json(join(packDir, 'package.json')).name !== NAME) throw new Error('Unexpected language pack name')
+  const { profileDir, manifestPath } = await selectProfile(args(argv), env)
+  // cmd.exe cannot retain a UNC working directory. Refuse before any writes.
+  if (process.platform === 'win32' && profileDir.startsWith('\\\\')) {
+    throw new Error('Windows UNC profile directories are not supported. Map the profile to a drive letter and use --profile.')
   }
-
-  const { manifestPath, profileDir } = inspected
+  const probe = runPnpm('--version', { cwd: profileDir, env, stdio: 'ignore' })
+  if (probe.status !== 0) throw new Error(`pnpm was not found in PATH or could not start (${failure(probe)}). Check pnpm --version first.`)
   const originalText = readFileSync(manifestPath, 'utf8')
-  const manifest = readJson(manifestPath, `Profile package.json (${manifestPath})`)
-  ensureProfileManifestStructure(manifest, manifestPath)
-
+  const { manifest } = inspect(profileDir)
   const dependencySpec = `link:${toLinkPath(packDir)}`
-  const updated = structuredClone(manifest)
-  if (!isPlainObject(updated.dependencies)) updated.dependencies = {}
-  updated.dependencies[PACKAGE_NAME] = dependencySpec
-  updated.dsh.profile.bundles = dedupeBundleEntries(updated.dsh.profile.bundles)
-
-  const backupPath = `${manifestPath}.bak-${new Date().toISOString().replaceAll(':', '').replaceAll('.', '')}`
-  await ensureParent(backupPath)
-  writeFileSync(backupPath, originalText, 'utf8')
-  const nextText = `${JSON.stringify(updated, null, 2)}\n`
-  writeFileSync(manifestPath, nextText, 'utf8')
-
+  manifest.dependencies ??= {}
+  manifest.dependencies[NAME] = dependencySpec
+  manifest.dsh.profile.bundles = [...manifest.dsh.profile.bundles.filter(entry => entry !== NAME), NAME]
+  const nextText = `${JSON.stringify(manifest, null, 2)}\n`
+  const backupPath = `${manifestPath}.bak-${randomUUID()}`
   process.stdout.write('Stop DSH before installation.\n')
-  process.stdout.write(`Profile: ${profileDir}\n`)
-  process.stdout.write(`Backup: ${backupPath}\n`)
-  process.stdout.write(`Dependency: ${PACKAGE_NAME} -> ${dependencySpec}\n`)
-
-  const result = spawnSync(pnpm, ['install'], {
-    cwd: profileDir,
-    stdio: 'inherit',
-    shell: false,
-  })
-
-  if (result.status !== 0) {
+  writeFileSync(backupPath, originalText, { encoding: 'utf8', flag: 'wx' })
+  writeFileSync(manifestPath, nextText, 'utf8')
+  process.stdout.write(`Profile: ${profileDir}\nBackup: ${backupPath}\n`)
+  let result
+  try {
+    result = runPnpm('install', { cwd: profileDir, env, stdio: 'inherit' })
+    if (result.status !== 0) throw new Error(failure(result))
+  } catch (error) {
+    if (readFileSync(manifestPath, 'utf8') !== nextText) {
+      throw new Error(`pnpm install failed (${error.message}). Profile changed concurrently; not overwritten. Original backup: ${backupPath}. lockfile/node_modules may still contain partial changes.`)
+    }
     writeFileSync(manifestPath, originalText, 'utf8')
-    throw new Error('pnpm install failed. Profile package.json was restored from backup. lockfile/node_modules may still contain partial changes from pnpm.')
+    throw new Error(`pnpm install failed (${error.message}). Profile package.json was restored from backup. lockfile/node_modules may still contain partial changes from pnpm.`)
   }
-
-  process.stdout.write('Installation updated profile configuration successfully.\n')
   process.stdout.write('Restart DSH and reload the browser, then select 日本語 in Settings > General > Language.\n')
-
-  return {
-    profileDir,
-    backupPath,
-    dependencySpec,
-  }
+  return { profileDir, backupPath, dependencySpec }
 }
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runInstaller().catch((error) => {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
-    process.exitCode = 1
-  })
+function isMain() {
+  if (!process.argv[1]) return false
+  try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)) }
+  catch { return false }
 }
+if (isMain()) runInstaller().catch(error => {
+  process.stderr.write(`${error.message}\n`)
+  process.exitCode = 1
+})

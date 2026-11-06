@@ -1,0 +1,35 @@
+name: Installer regression tests
+on:
+  push:
+    branches: [main, fix/installer-windows-direct]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all tests and preserve TAP output
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-reporter=tap 2>&1 | tee test-results.tap
+      - run: node tools/check.mjs --strict
+      - run: node tools/build.mjs --check
+      - name: Upload test output even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ matrix.os }}
+          path: test-results.tap
+          retention-days: 7
+          if-no-files-found: warn
